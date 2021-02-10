@@ -1,0 +1,80 @@
+import numpy as np
+import math as m
+import copy
+h = 1/80
+a = 1 
+b = 2
+X = np.arange(0,1+h,h)
+n = len(X) 
+mid = X[(len(X)-1)//2]
+
+Y =np.zeros((n, n))
+for i in range(1,n-1):
+    for j in range(1,n-1-i):
+        Y[i][j] = 1
+        Y[n-i-1][j] = 1
+def Laplas(A):
+    B = copy.copy(A)
+    for i in range(1,n-1):
+        for j in range(1,n-1-i): 
+            B[i][j] = - a * ( A[i][j-1] - 2 * A[i][j] + A[i][j+1]) /(h**2) - b * (A[i-1][j] - 2 * A[i][j] + A[i+1][j]) / (h ** 2)
+            B[n-i-1][j] = - a * ( A[n-i-1][j-1] - 2 * A[n-i-1][j] + A[n-i-1][j+1]) /(h**2) - b * (A[n-i-2][j] - 2 * A[n-i-1][j] + A[n-i][j]) / (h ** 2)
+    A = B
+    return A
+def Norm(A):
+    sum = 0
+    for i in A:
+        for j in i:
+            sum += j ** 2
+    return np.sqrt(sum)
+def Dot(A,B):
+    sum = 0
+    for i in range(n):
+        for j in range(n):
+            sum += A[i][j] * B[i][j]
+    return sum
+def min_eigenvalue(Ω,H):
+    Z = copy.copy(H)
+    Z = Z / Norm(H)
+    l_1 = Dot(Laplas(Z),Z)
+    Z = Laplas(Z)
+    Z = Z / Norm(Z)
+    l_2 = Dot(Laplas(Z),Z)
+    H = H / Norm(H)
+    max_1 = Dot(l_1 * H - Laplas(H),H) 
+    min_1 = l_1 - max_1
+    H = l_1 * H - Laplas(H)
+    H = H / Norm(H)
+    max_2 = Dot(l_2 * H - Laplas(H),H)
+    min_2 = l_2 - max_2 
+    j = 2
+    while (abs((min_1 - min_2) / min_1) > Ω):
+        Z = Laplas(Z)
+        Z = Z / Norm(Z)
+        l_1 = l_2
+        l_2 = Dot(Laplas(Z),Z)
+        min_1 = min_2
+        H = l_2 * H - Laplas(H)
+        H = H / Norm(H)
+        max_2 = Dot(l_2 * H - Laplas(H),H)
+        min_2 = l_2 - max_2 
+        j += 1
+    else: 
+        print(j)
+        print(min_2)
+def max_eigenvalue(Ω,H):
+    H = H / Norm(H)
+    l_1 = Dot(Laplas(H),H)
+    H = Laplas(H)
+    H = H / Norm(H)
+    l_2 = Dot(Laplas(H),H)
+    j = 2
+    while (abs((l_1-l_2)/l_1)> Ω):
+        j += 1
+        l_1 = l_2 
+        H = Laplas(H)
+        H = H / Norm(H)
+        l_2 = Dot(Laplas(H),H)
+    else:
+        print(j)
+        print(l_2)
